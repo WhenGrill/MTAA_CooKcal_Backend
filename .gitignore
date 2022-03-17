@@ -1,0 +1,7 @@
+**/.idea
+**/.pycharm
+**/venv
+
+*.env
+*.http
+
