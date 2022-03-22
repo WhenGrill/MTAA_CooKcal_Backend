@@ -29,9 +29,13 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserLoginResponse(BaseModel):
-    # Autentification: token
-    pass
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
 
     class Config:
         orm_mode = True
+
+
+class TokenData(BaseModel):  # Token payload
+    id: Optional[str] = None
