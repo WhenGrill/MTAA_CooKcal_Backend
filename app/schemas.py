@@ -24,6 +24,18 @@ class UserCreateResponse(BaseModel):
         orm_mode = True
 
 
+class UserOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    gender: int
+    age: int
+    state: int
+    is_nutr_adviser: bool
+
+    class Config:
+        orm_mode = True
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
