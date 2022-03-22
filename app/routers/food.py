@@ -17,3 +17,10 @@ def root(db: Session = Depends(get_db)):
     answer = db.query(models.Food).all()
 
     return answer
+
+
+@router.get("/{food_id}", response_model=food.FoodOut)
+def root(food_id: int, db: Session = Depends(get_db)):
+    answer = db.query(models.Food).filter(models.Food.id == food_id).first()
+
+    return answer
