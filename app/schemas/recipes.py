@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from typing import Union, ByteString
+
 
 # Getting food based on ID
 class RecipeOut(BaseModel):
@@ -14,3 +16,8 @@ class RecipeOut(BaseModel):
         orm_mode = True
 
 
+class RecipeOutPicture(BaseModel):
+    recipe_picture: bytes = None
+
+    class Config:
+        orm_mode = True
