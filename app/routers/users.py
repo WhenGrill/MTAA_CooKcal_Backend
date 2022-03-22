@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from ..database import get_db
 from .. import models, utils, schemas
@@ -14,10 +15,14 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[UserOut])
-def get_all_users(db: Session = Depends(get_db)):
-    answer = db.query(models.User).all()
+def get_users(name: Optional[str] = '', db: Session = Depends(get_db)):
+    if name == '':
+        users = db.query(models.User).all()
+    else:
+        users = db.query(models.User).filter(func.lower(
+            func.concat(models.User.first_name, ' ', models.User.last_name)).like(f"%{name}%")).all()
 
-    return answer
+    return users
 
 
 @router.post("/", response_model=UserOut)
