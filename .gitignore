@@ -1,6 +1,7 @@
 **/.idea
 **/.pycharm
 **/venv
+**/__pycache__
 
 *.env
 *.http
