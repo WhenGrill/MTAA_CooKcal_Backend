@@ -2,7 +2,8 @@ from fastapi import APIRouter
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
-from .. import models, schemas
+from .. import models
+from ..schemas import food
 from typing import List
 
 router = APIRouter(
@@ -10,9 +11,9 @@ router = APIRouter(
     tags=["Food"]
 )
 
-@router.get("/", response_model=List[schemas.UserOut])
+
+@router.get("/", response_model=List[food.FoodOut])
 def root(db: Session = Depends(get_db)):
-    answer = db.query(models.User).all()
+    answer = db.query(models.Food).all()
 
     return answer
-
