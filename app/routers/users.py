@@ -19,7 +19,8 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[UserOut])
-def get_users(name: Optional[str] = '', db: Session = Depends(get_db)):
+def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
+              db: Session = Depends(get_db)):
     if name == '':
         users = db.query(models.User).all()
     else:
@@ -30,7 +31,7 @@ def get_users(name: Optional[str] = '', db: Session = Depends(get_db)):
 
 
 @router.get("/{id}", response_model=UserOut)
-def get_one_user(id: int, db: Session = Depends(get_db)):
+def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
 
     return user
