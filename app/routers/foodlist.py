@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy import func, and_, Date
 from sqlalchemy.orm import Session
 
 from .. import models
-from ..oauth2 import get_current_user
+from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..database import get_db
-from ..schemas.foodlist import FoodListOut
+from ..schemas.foodlist import FoodListOut, FoodListAdd
 
 from typing import List
 
@@ -27,3 +27,31 @@ def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
     food_list = food_list_query.all()
 
     return food_list
+
+
+@router.post("/", response_model=FoodListOut)
+def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depends(get_current_user),
+                          db: Session = Depends(get_db)):
+    new_food_model = models.Foodlist(id_user=curr_user.id, **new_food.dict())
+    db.add(new_food_model)
+    db.commit()
+    db.refresh(new_food_model)
+
+    fetched = db.query(models.Food.title, models.Food.kcal_100g, models.Foodlist.amount)\
+        .join(models.Food).filter(models.Foodlist.id == new_food_model.id).first()
+
+    return fetched
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_food_from_food_list(curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    food_query = db.query(models.Foodlist).filter(models.Foodlist.id == id)
+    food = food_query.first()
+
+    if food is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} was not found")
+    elif food.id_user != curr_user.id:
+        raise ex_notAuthToPerformAction
+
+    food_query.delete(synchronize_session=False)
+    db.commit()
