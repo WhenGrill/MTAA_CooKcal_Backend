@@ -29,6 +29,13 @@ def get_users(name: Optional[str] = '', db: Session = Depends(get_db)):
     return users
 
 
+@router.get("/{id}", response_model=UserOut)
+def get_one_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+
+    return user
+
+
 @router.get("/{id}/image")
 def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_current_user),
                              db: Session = Depends(get_db)):
@@ -48,6 +55,23 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user_reg_data)
 
     return user_reg_data
+
+
+@router.put("/{id}", response_model=UserOut)
+def update_user_data(id: int, updated_user: UserCreate, db: Session = Depends(get_db),
+                     curr_user: models.User = Depends(get_current_user)):
+    user_query = db.query(models.User).filter(models.User.id == id)
+    user = user_query.first()
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} was not found")
+    elif user.id != curr_user.id:
+        raise ex_notAuthToPerformAction
+
+    user_query.update(updated_user.dict(), synchronize_session=False)
+    db.commit()
+
+    return user_query.first()
 
 
 @router.put("/{id}/image")
