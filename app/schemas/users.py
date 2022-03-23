@@ -36,6 +36,11 @@ class UserOut(BaseModel):
     class Config:
         orm_mode = True
 
+
+class ProfilePictureIn(BaseModel):
+    profile_picture: bytes
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
