@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from ..database import get_db
-from .. import models, utils, schemas
+from .. import models, utils
+from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..schemas.users import UserOut, UserCreate
 
 
@@ -36,3 +37,17 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user_reg_data)
 
     return user_reg_data
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_account(curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_query = db.query(models.User).filter(models.User.id == id)
+    user = user_query.first()
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} was not found")
+    elif user.id != curr_user.id:
+        raise ex_notAuthToPerformAction
+
+    user_query.delete(synchronize_session=False)
+    db.commit()

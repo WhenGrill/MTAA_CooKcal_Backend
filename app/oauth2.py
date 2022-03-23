@@ -13,6 +13,8 @@ ex_InvalidCreds = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="I
 ex_validationErr = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                  detail=f"Could not validate credentials",
                                  headers={"WWW-Authenticate": "Bearer"})
+ex_notAuthToPerformAction = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail=f"Not authorized to perform requested action")
 
 SECRET_KEY = env.secret
 ALGORITHM = env.algorithm
