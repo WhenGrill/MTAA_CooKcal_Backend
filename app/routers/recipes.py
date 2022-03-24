@@ -64,7 +64,7 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
 
-    if recipe.user_id != curr_user.id:
+    elif recipe.user_id != curr_user.id:
         raise ex_notAuthToPerformAction
 
     recipe_query.update(remove_none_from_dict(updated_recipe.dict()), synchronize_session=False)
@@ -89,3 +89,18 @@ def update_recipe_picture(id: int, updated_profile_picture: recipes.RecipeInPict
     db.commit()
 
     return StreamingResponse(io.BytesIO(recipe_query.first().profile_picture.tobytes()), media_type="image/png")
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_recipe(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
+    recipe = recipe_query.first()
+
+    if recipe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Recipe with id {id} was not found")
+    elif recipe.user_id != curr_user.id:
+        raise ex_notAuthToPerformAction
+
+    recipe_query.delete(synchronize_session=False)
+    db.commit()
