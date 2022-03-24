@@ -3,6 +3,13 @@ from pydantic import BaseModel
 from typing import Union, ByteString
 
 
+class RecipeIn(BaseModel):
+    title: str
+    ingredients: str
+    instructions: str
+    kcal_100g: float
+
+
 # Getting food based on ID
 class RecipeOut(BaseModel):
     id: int

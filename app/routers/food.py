@@ -19,6 +19,7 @@ router = APIRouter(
 def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
                             db: Session = Depends(get_db)):
     if title != '':
+        title = title.lower()
         answer = db.query(models.Food).filter(func.lower(models.Food.title).like(f"%{title}%")).all()
     else:
         answer = db.query(models.Food).all()
