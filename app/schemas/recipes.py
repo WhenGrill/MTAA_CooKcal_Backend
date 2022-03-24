@@ -35,3 +35,7 @@ class RecipeUpdate(BaseModel):
     ingredients: Optional[str]
     instructions: Optional[str]
     kcal_100g: Optional[float]
+
+
+class RecipeInPicture(BaseModel):
+    recipe_picture: bytes

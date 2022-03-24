@@ -7,6 +7,8 @@ from ..schemas import recipes
 from typing import List, Optional
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..utils import remove_none_from_dict
+from starlette.responses import StreamingResponse
+import io
 
 router = APIRouter(
     prefix="/recipes",
@@ -69,3 +71,21 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
     db.commit()
 
     return recipe_query.first()
+
+
+@router.put("/{id}/image")
+def update_recipe_picture(id: int, updated_profile_picture: recipes.RecipeInPicture,
+                                curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
+    recipe = recipe_query.first()
+
+    if recipe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Recipe with id {id} was not found")
+    elif recipe.user_id != curr_user.id:
+        raise ex_notAuthToPerformAction
+
+    recipe_query.update(remove_none_from_dict(updated_profile_picture.dict()), synchronize_session=False)
+    db.commit()
+
+    return StreamingResponse(io.BytesIO(recipe_query.first().profile_picture.tobytes()), media_type="image/png")
