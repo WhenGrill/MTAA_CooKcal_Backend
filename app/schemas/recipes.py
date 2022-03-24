@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from typing import Union, ByteString
+from typing import Union, ByteString, Optional
 
 
 class RecipeIn(BaseModel):
@@ -28,3 +28,10 @@ class RecipeOutPicture(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class RecipeUpdate(BaseModel):
+    title: Optional[str]
+    ingredients: Optional[str]
+    instructions: Optional[str]
+    kcal_100g: Optional[float]
