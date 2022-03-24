@@ -24,7 +24,7 @@ class User(Base):
 
 
 class Weightmeasure(Base):
-    __tablename__ = "weight_measurements"
+    __tablename__ = "weight_measurement"
 
     id = Column(Integer, primary_key=True, nullable=False)
     id_user = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
