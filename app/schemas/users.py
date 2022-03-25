@@ -15,6 +15,13 @@ class UserCreate(BaseModel):
     is_nutr_adviser: bool
 
 
+class UserUpdate(BaseModel):
+    goal_weight: Optional[float]
+    height: Optional[float]
+    state: Optional[int]
+    is_nutr_adviser: Optional[bool]
+
+
 class UserCreateResponse(BaseModel):
     id: int
     email: EmailStr
@@ -35,6 +42,11 @@ class UserOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserUpdatedOut(UserOut):
+    goal_weight: float
+    height: float
 
 
 class ProfilePictureIn(BaseModel):
