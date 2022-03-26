@@ -1,3 +1,8 @@
+INSERT INTO users (id, email, password, first_name, last_name, gender, age, goal_weight, height,
+                   state, is_nutr_adviser)
+  VALUES
+        (0, 'unknown@user.com', ' ', 'Unknown' ,'User', 1, 1, 1, 1, 1, false);
+
 INSERT INTO users (email, password, first_name, last_name, gender, age, goal_weight, height,
                    state, is_nutr_adviser)
   VALUES
@@ -38,25 +43,25 @@ INSERT INTO food (title, kcal_100g)
 
 INSERT INTO recipes (id_user, title, ingredients, instructions, kcal_100g)
     VALUES
-        (1, 'Reciepe0', 'Ingredients Here', 'Instructions here', 10),
-        (1, 'Reciepe1', 'Ingredients Here', 'Instructions here', 20),
-        (1, 'Reciepe2', 'Ingredients Here', 'Instructions here', 30),
-        (2, 'Reciepe3', 'Ingredients Here', 'Instructions here', 40),
-        (2, 'Reciepe4', 'Ingredients Here', 'Instructions here', 50),
-        (2, 'Reciepe5', 'Ingredients Here', 'Instructions here', 60),
-        (3, 'Reciepe6', 'Ingredients Here', 'Instructions here', 70);
+        (1, 'Recipe0', 'Ingredients Here', 'Instructions here', 10),
+        (1, 'Recipe1', 'Ingredients Here', 'Instructions here', 20),
+        (1, 'Recipe2', 'Ingredients Here', 'Instructions here', 30),
+        (2, 'Recipe3', 'Ingredients Here', 'Instructions here', 40),
+        (2, 'Recipe4', 'Ingredients Here', 'Instructions here', 50),
+        (2, 'Recipe5', 'Ingredients Here', 'Instructions here', 60),
+        (3, 'Recipe6', 'Ingredients Here', 'Instructions here', 70);
 
 
 INSERT INTO foodlist (id_user, id_food, amount, time)
     VALUES
-        (1, 0, 20, now()),
+        (1, 4, 20, now()),
         (1, 5, 100, now()),
         (1, 6, 5, now()),
         (2, 8, 1, now()),
         (2, 12, 1, now()),
         (3, 7, 4, now()),
         (3, 3, 100, now()),
-        (3, 0, 20, now()),
+        (3, 7, 20, now()),
         (7, 1, 1, now()),
         (7, 6, 20, now()),
         (4, 4, 5, now());
