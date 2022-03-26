@@ -104,7 +104,7 @@ CREATE TABLE public.foodlist
     id int NOT NULL DEFAULT nextval('foodlist_id_seq'),
     id_user integer NOT NULL,
     id_food integer NOT NULL,
-    amount double precision NOT NULL CHECK (amount > 0),
+    amount double precision NOT NULL,
     "time" timestamp with time zone DEFAULT now() NOT NULL,
 
     CONSTRAINT positive_amount CHECK (amount > 0),
