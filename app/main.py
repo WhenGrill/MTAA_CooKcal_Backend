@@ -8,11 +8,11 @@ app = FastAPI()
 
 # Routers
 app.include_router(auth.router)
+app.include_router(users.router)
 app.include_router(food.router)
 app.include_router(foodlist.router)
-app.include_router(recipes.router)
-app.include_router(users.router)
 app.include_router(weight_measurement.router)
+app.include_router(recipes.router)
 
 
 @app.get("/")

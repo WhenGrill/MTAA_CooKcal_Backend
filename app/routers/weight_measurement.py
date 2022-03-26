@@ -3,20 +3,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
 from .. import models
-from ..schemas import weight_measurement
+from ..schemas.weight_measurement import WeightIn, WeightOut
 from typing import List, Optional
-from ..oauth2 import get_current_user, ex_notAuthToPerformAction
-from ..utils import remove_none_from_dict
-from starlette.responses import StreamingResponse
-import io
+from ..oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/weight_measurement",
-    tags=["Weight_measurement"]
+    tags=["Weight measurement"]
 )
 
 
-@router.get("/", response_model=List[weight_measurement.WeightOut])
+@router.get("/", response_model=List[WeightOut])
 def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_db),
                            curr_user: models.User = Depends(get_current_user)):
     if date == '':
@@ -29,8 +26,8 @@ def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_d
 
 
 # Still not working
-@router.post("/", response_model=weight_measurement.WeightOut)
-def add_recipe(weight: weight_measurement.WeightIn, db: Session = Depends(get_db),
+@router.post("/", response_model=WeightOut)
+def add_weight_measurement(weight: WeightIn, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
     new_measurement = models.Weightmeasure(id_user=curr_user.id, **weight.dict())
     db.add(new_measurement)
