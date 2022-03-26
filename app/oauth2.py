@@ -48,5 +48,6 @@ def verify_token(token: str, credentials_exception: HTTPException):
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)) -> models.User:
     token = verify_token(token, ex_validationErr)
     user = db.query(models.User).filter(models.User.id == token.id).first()
-
+    if user is None:
+        raise ex_notAuthToPerformAction
     return user
