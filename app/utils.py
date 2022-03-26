@@ -26,23 +26,23 @@ def remove_none_from_dict(data: dict) -> dict:
     return filtered
 
 
-def verify_image(file: bytes) -> Union[bytes, HTTPException]:  # Verify if image is suitable to upload
+def verify_image(file: bytes) -> bytes:  # Verify if image is suitable to upload
     ex_unsupported = HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                                    detail="Unsupported file or media type")
 
     try:
         im = Image.open(io.BytesIO(file))
     except PIL.UnidentifiedImageError:
-        return ex_unsupported
+        raise ex_unsupported
     except Exception:
-        return ex_unsupported
+        raise ex_unsupported
 
     if im.format not in ALLOWED_IMAGE_TYPES:
-        return ex_unsupported
+        raise ex_unsupported
 
     im_size = sys.getsizeof(file)
     if im_size > MAX_FILE_SIZE:
-        return HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
 
     if im.size[0] > MAX_IMAGE_DIM[0] or im.size[0] > MAX_IMAGE_DIM[1]:
         im.thumbnail(MAX_IMAGE_DIM, Image.ANTIALIAS)
