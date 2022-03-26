@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from .. import models
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..database import get_db
 from ..schemas.foodlist import FoodListOut, FoodListAdd
+from ..utils import ex_formatter
 
 from datetime import datetime
+from dateutil import parser
 from typing import List
 
 
@@ -20,10 +23,15 @@ router = APIRouter(
 @router.get("/", response_model=List[FoodListOut], status_code=status.HTTP_200_OK)
 def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
                   db: Session = Depends(get_db)):
+    try:
+        test_date = str(parser.parse(date).date())
+    except Exception:
+        return None
+
     food_list_query = db.query(models.Foodlist.id, models.Food.title, models.Food.kcal_100g, models.Foodlist.amount)\
         .join(models.Food).filter(and_(models.Foodlist.id_user == curr_user.id,
-                                       and_(func.date(models.Foodlist.time) >= date),
-                                       func.date(models.Foodlist.time) <= date))
+                                       and_(func.date(models.Foodlist.time) >= test_date),
+                                       func.date(models.Foodlist.time) <= test_date))
 
     food_list = food_list_query.all()
 
@@ -33,10 +41,21 @@ def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
 @router.post("/", response_model=FoodListOut, status_code=status.HTTP_200_OK)
 def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depends(get_current_user),
                           db: Session = Depends(get_db)):
+    answer = db.query(models.Food).filter(models.Food.id == new_food.id_food).first()
+    if answer is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Food not found")
+
     add_time = datetime.now()
     new_food_model = models.Foodlist(id_user=curr_user.id, time=add_time, **new_food.dict())
-    db.add(new_food_model)
-    db.commit()
+
+    try:
+        db.add(new_food_model)
+        db.commit()
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ex_formatter(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e.__cause__))
+
     # db.refresh(new_food_model)
 
     fetched = db.query(models.Foodlist.id, models.Food.title, models.Food.kcal_100g, models.Foodlist.amount)\

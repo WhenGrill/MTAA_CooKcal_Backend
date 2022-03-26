@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
@@ -31,6 +30,7 @@ def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = 
 def get_food_by_id(food_id: int, curr_user: models.User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
     answer = db.query(models.Food).filter(models.Food.id == food_id).first()
-
+    if answer is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Food not found")
     return answer
 

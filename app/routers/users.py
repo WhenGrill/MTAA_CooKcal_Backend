@@ -92,8 +92,13 @@ def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(ge
     elif user.id != curr_user.id:
         raise ex_notAuthToPerformAction
 
-    user_query.update(remove_none_from_dict(updated_user.dict()), synchronize_session=False)
-    db.commit()
+    try:
+        user_query.update(remove_none_from_dict(updated_user.dict()), synchronize_session=False)
+        db.commit()
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ex_formatter(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e.__cause__))
 
     return user_query.first()
 
