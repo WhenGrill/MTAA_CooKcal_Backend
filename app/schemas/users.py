@@ -1,6 +1,8 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
+import datetime
+
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -25,7 +27,7 @@ class UserUpdate(BaseModel):
 class UserCreateResponse(BaseModel):
     id: int
     email: EmailStr
-    created_at: str
+    created_at: datetime.datetime
 
     class Config:
         orm_mode = True

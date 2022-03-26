@@ -1,6 +1,8 @@
 from sqlalchemy import Column, ForeignKey, SmallInteger, Integer, Float, String, Text, Boolean, LargeBinary
+from sqlalchemy import func, CheckConstraint, UniqueConstraint
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -12,51 +14,68 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     profile_picture = Column(LargeBinary, nullable=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    first_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=False)
     gender = Column(SmallInteger, nullable=False)  # ENUM???
-    age = Column(Integer, nullable=False)
+    age = Column(SmallInteger, nullable=False)
     goal_weight = Column(Float)
     height = Column(Float)
     state = Column(SmallInteger)  # ENUM???
     is_nutr_adviser = Column(Boolean)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
+    __table_args__ = (UniqueConstraint('email'),
+                      CheckConstraint('gender BETWEEN 0 AND 2', name='gender_between_0_and_2'),
+                      CheckConstraint('age > 0 AND age < 120', name='age_between_1_and_120'),
+                      CheckConstraint('goal_weight > 0', name='positive_goal_weight'),
+                      CheckConstraint('height > 0', name='positive_height'),
+                      CheckConstraint('state BETWEEN 0 AND 2', name='state_between_0_and_2')
+                      )
+
 
 class Weightmeasure(Base):
-    __tablename__ = "weight_measurement"
+    __tablename__ = "weightmeasurements"
 
     id = Column(Integer, primary_key=True, nullable=False)
     id_user = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     weight = Column(Float, nullable=False)
-    measure_time = Column(TIMESTAMP(timezone=True), nullable=False)
+    measure_time = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+    __tableargs__ = (CheckConstraint('weight > 0', name='positive_weight'), )
 
 
 class Foodlist(Base):
-    __tablename__ = "food_list"
+    __tablename__ = "foodlist"
 
     id = Column(Integer, primary_key=True, nullable=False)
     id_user = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     id_food = Column(Integer, ForeignKey("food.id", ondelete="CASCADE"), primary_key=True)
     amount = Column(Float, nullable=False)
-    time = Column(TIMESTAMP(timezone=True), nullable=False)
+    time = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+    __tableargs__ = (CheckConstraint('amount > 0', name='positive_amount'))
 
 
 class Food(Base):
     __tablename__ = "food"
     id = Column(Integer, primary_key=True, nullable=False)
-    title = Column(String, nullable=False)
+    title = Column(String(80), nullable=False)
     kcal_100g = Column(Float, nullable=False)
+
+    __tableargs__ = (CheckConstraint('kcal_100g > 0', name='positive_kcal_100g_in_food'))
 
 
 class Recipe(Base):
     __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    id_user = Column(Integer, ForeignKey("users.id", ondelete="SET DEFAULT"), primary_key=True,
+                     server_default=text('0'))
     recipe_picture = Column(LargeBinary, nullable=True)
-    title = Column(String, nullable=False)
+    title = Column(String(80), nullable=False)
     ingredients = Column(Text, nullable=False)
     instructions = Column(Text, nullable=False)
     kcal_100g = Column(Float, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+    creator = relationship("User")

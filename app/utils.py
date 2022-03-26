@@ -51,3 +51,9 @@ def verify_image(file: bytes) -> bytes:  # Verify if image is suitable to upload
         return img_bytes.getvalue()
 
     return file
+
+
+def ex_formatter(e: Exception):
+    msg: str = str(e.__cause__)
+    msg = msg.split('\n')[0].split('\"')[2] + msg.split('\n')[0].split('\"')[3]
+    return msg[1:]
