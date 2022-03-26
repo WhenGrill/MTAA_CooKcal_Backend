@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status
 from starlette.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
+from PIL import Image
 
 from ..database import get_db
 from .. import models, utils
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..schemas.users import UserOut, UserCreate, UserUpdate, UserUpdatedOut, UserCreateResponse, ProfilePictureIn
-from ..utils import remove_none_from_dict
+from ..utils import remove_none_from_dict, verify_image
 
 import io
 import psycopg2
@@ -50,10 +51,13 @@ def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_curre
                              db: Session = Depends(get_db)):
     user = db.query(models.User.profile_picture).filter(models.User.id == id).first()
 
-    if user.profile_picture is None:
+    if user is None:
+        raise ex_userNotFound
+    elif user.profile_picture is None:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
 
-    return StreamingResponse(io.BytesIO(user.profile_picture.tobytes()), media_type="image/png")
+    im = Image.open(io.BytesIO(user.profile_picture))
+    return StreamingResponse(io.BytesIO(user.profile_picture), media_type=f"image/{im.format.lower()}")
 
 
 @router.post("/", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -92,7 +96,7 @@ def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(ge
 
 
 @router.put("/{id}/image", status_code=status.HTTP_200_OK)
-def update_user_profile_picture(id: int, updated_profile_picture: ProfilePictureIn,
+def update_user_profile_picture(id: int, prof_picture: UploadFile = File(...),
                                 curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
@@ -102,14 +106,17 @@ def update_user_profile_picture(id: int, updated_profile_picture: ProfilePicture
     elif user.id != curr_user.id:
         raise ex_notAuthToPerformAction
 
-    user_query.update(remove_none_from_dict(updated_profile_picture.dict()), synchronize_session=False)
+    verified_image = verify_image(prof_picture.file.read())
+
+    user_query.update({'profile_picture': verified_image}, synchronize_session=False)
     db.commit()
 
-    return StreamingResponse(io.BytesIO(user_query.first().profile_picture.tobytes()), media_type="image/png")
+    return StreamingResponse(io.BytesIO(user_query.first().profile_picture),
+                             media_type=prof_picture.content_type)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user_account(curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+def delete_user_account(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 
