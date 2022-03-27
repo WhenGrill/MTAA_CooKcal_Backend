@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 from typing import Union, ByteString, Optional
+from .users import UserOut
+import datetime
 
 
 class RecipeIn(BaseModel):
@@ -13,11 +15,22 @@ class RecipeIn(BaseModel):
 # Getting food based on ID
 class RecipeOut(BaseModel):
     id: int
-    user_id: int
+    # id_user: int
     title: str
     ingredients: str
     instructions: str
     kcal_100g: float
+    creator: UserOut
+
+    class Config:
+        orm_mode = True
+
+
+class RecipePostOut(BaseModel):
+    id: int
+    id_user: int
+    title: str
+    created_at: datetime.datetime
 
     class Config:
         orm_mode = True

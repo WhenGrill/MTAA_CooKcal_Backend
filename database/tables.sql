@@ -73,16 +73,18 @@ CREATE TABLE IF NOT EXISTS public.recipes
     title character varying(80) NOT NULL,
     ingredients text NOT NULL,
     instructions text NOT NULL,
-    kcal_100g double precision NULL,
+    kcal_100g double precision NOT NULL,
 	created_at timestamp with time zone DEFAULT now() NOT NULL,
+
+    CONSTRAINT zero_or_positive_kcal_100g CHECK (kcal_100g >= 0),
 
     CONSTRAINT fk_recipes_id_user
         FOREIGN KEY (id_user)
         REFERENCES users (id)
         ON DELETE SET DEFAULT,
 
-    CONSTRAINT pk_idrecipes_id_user
-        PRIMARY KEY (id, id_user)
+    CONSTRAINT pk_idrecipes
+        PRIMARY KEY (id)
 );
 
 

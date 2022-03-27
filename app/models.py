@@ -69,8 +69,7 @@ class Recipe(Base):
     __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET DEFAULT"), primary_key=True,
-                     server_default=text('0'))
+    id_user = Column(Integer, ForeignKey("users.id", ondelete="SET DEFAULT"), server_default=text('0'))
     recipe_picture = Column(LargeBinary, nullable=True)
     title = Column(String(80), nullable=False)
     ingredients = Column(Text, nullable=False)
@@ -79,3 +78,5 @@ class Recipe(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
     creator = relationship("User")
+
+    __tableargs__ = (CheckConstraint('kcal_100g >= 0', name='zero_or_positive_kcal_100g'), )
