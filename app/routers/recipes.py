@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models
+from sqlalchemy import func
 from ..schemas import recipes
 from typing import List, Optional
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
@@ -20,7 +21,8 @@ router = APIRouter(
 def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
                 curr_user: models.User = Depends(get_current_user)):
     if title != '':
-        answer = db.query(models.Recipe).filter(models.Recipe.title == title).all()
+        title = title.lower()
+        answer = db.query(models.Recipe).filter(func.lower(models.Recipe.title).like(f"%{title}%")).all()
     else:
         answer = db.query(models.Recipe).all()
 

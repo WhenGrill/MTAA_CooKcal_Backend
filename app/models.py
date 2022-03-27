@@ -69,7 +69,7 @@ class Recipe(Base):
     __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    id_user = Column(Integer, ForeignKey("users.id", ondelete="SET DEFAULT"), primary_key=True,
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET DEFAULT"), primary_key=True,
                      server_default=text('0'))
     recipe_picture = Column(LargeBinary, nullable=True)
     title = Column(String(80), nullable=False)
