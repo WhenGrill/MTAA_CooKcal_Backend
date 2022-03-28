@@ -9,7 +9,7 @@ from PIL import Image
 from ..database import get_db
 from .. import models, utils
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
-from ..schemas.users import UserOut, UserCreate, UserUpdate, UserUpdatedOut, UserCreateResponse, ProfilePictureIn
+from ..schemas.users import UserOut, UserCreate, UserUpdate, UserUpdatedOut, UserCreateResponse
 from ..utils import remove_none_from_dict, verify_image, ex_formatter
 
 import io

@@ -56,11 +56,6 @@ class UserUpdatedOut(UserOut):
     height: float
 
 
-# Profile picture update
-class ProfilePictureIn(BaseModel):
-    profile_picture: bytes
-
-
 # Login schema
 class UserLogin(BaseModel):
     email: EmailStr

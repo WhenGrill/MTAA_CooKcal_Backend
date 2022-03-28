@@ -7,6 +7,8 @@ from .schemas.users import TokenData
 from sqlalchemy.orm import Session
 from .config import env
 
+# code inspired by this documentation: https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 ex_InvalidCreds = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials")
