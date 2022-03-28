@@ -4,6 +4,7 @@ from typing import Optional
 import datetime
 
 
+# User register schema
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
@@ -17,6 +18,7 @@ class UserCreate(BaseModel):
     is_nutr_adviser: bool
 
 
+# User update in schema
 class UserUpdate(BaseModel):
     goal_weight: Optional[float]
     height: Optional[float]
@@ -24,6 +26,7 @@ class UserUpdate(BaseModel):
     is_nutr_adviser: Optional[bool]
 
 
+# Response for user registration
 class UserCreateResponse(BaseModel):
     id: int
     email: EmailStr
@@ -33,6 +36,7 @@ class UserCreateResponse(BaseModel):
         orm_mode = True
 
 
+# Basic user endpoint response schema
 class UserOut(BaseModel):
     id: int
     first_name: str
@@ -46,20 +50,24 @@ class UserOut(BaseModel):
         orm_mode = True
 
 
+# User update response
 class UserUpdatedOut(UserOut):
     goal_weight: float
     height: float
 
 
+# Profile picture update
 class ProfilePictureIn(BaseModel):
     profile_picture: bytes
 
 
+# Login schema
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
 
+# Token response schema
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
@@ -68,5 +76,6 @@ class TokenResponse(BaseModel):
         orm_mode = True
 
 
-class TokenData(BaseModel):  # Token payload
+# Token payload
+class TokenData(BaseModel):
     id: Optional[str] = None

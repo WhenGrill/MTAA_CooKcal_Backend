@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 
+# Response foodlist schema
 class FoodListOut(BaseModel):
     id: int
     title: str
@@ -8,6 +9,7 @@ class FoodListOut(BaseModel):
     amount: float
 
 
+# adding food list
 class FoodListAdd(BaseModel):
     id_food: int
     amount: float

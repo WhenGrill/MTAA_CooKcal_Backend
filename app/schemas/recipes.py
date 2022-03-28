@@ -5,6 +5,7 @@ from .users import UserOut
 import datetime
 
 
+# Adding new recipe
 class RecipeIn(BaseModel):
     title: str
     ingredients: str
@@ -15,7 +16,6 @@ class RecipeIn(BaseModel):
 # Getting food based on ID
 class RecipeOut(BaseModel):
     id: int
-    # id_user: int
     title: str
     ingredients: str
     instructions: str
@@ -26,6 +26,7 @@ class RecipeOut(BaseModel):
         orm_mode = True
 
 
+# Response recipe
 class RecipePostOut(BaseModel):
     id: int
     id_user: int
@@ -36,6 +37,7 @@ class RecipePostOut(BaseModel):
         orm_mode = True
 
 
+# Recipe picture recipe
 class RecipeOutPicture(BaseModel):
     recipe_picture: bytes = None
 
@@ -43,6 +45,7 @@ class RecipeOutPicture(BaseModel):
         orm_mode = True
 
 
+# Recipe update in
 class RecipeUpdate(BaseModel):
     title: Optional[str]
     ingredients: Optional[str]
@@ -50,5 +53,6 @@ class RecipeUpdate(BaseModel):
     kcal_100g: Optional[float]
 
 
+# Recipe picture schema
 class RecipeInPicture(BaseModel):
     recipe_picture: bytes
