@@ -89,9 +89,11 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
 
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
-
     elif recipe.id_user != curr_user.id:
         raise ex_notAuthToPerformAction
+    elif all(value is None for value in updated_recipe.dict().values()):
+        raise HTTPException(status_code=status.HTTP_304_NOT_MODIFIED, detail="Nothing to update")
+
 
     try:
         recipe_query.update(remove_none_from_dict(updated_recipe.dict()), synchronize_session=False)

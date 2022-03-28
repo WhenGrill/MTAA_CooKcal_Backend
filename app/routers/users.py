@@ -91,6 +91,8 @@ def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(ge
         raise ex_userNotFound
     elif user.id != curr_user.id:
         raise ex_notAuthToPerformAction
+    elif all(value is None for value in updated_user.dict().values()):
+        raise HTTPException(status_code=status.HTTP_304_NOT_MODIFIED, detail="Nothing to update")
 
     try:
         user_query.update(remove_none_from_dict(updated_user.dict()), synchronize_session=False)
