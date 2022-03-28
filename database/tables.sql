@@ -35,11 +35,14 @@ CREATE TABLE public.users
     is_nutr_adviser boolean NOT NULL,
 	created_at timestamp with time zone DEFAULT now() NOT NULL,
 
+    CONSTRAINT valid_email CHECK (email ~ '^.+[@]{1}.+[.]{1}.+$' ),
     CONSTRAINT gender_between_0_and_2 CHECK (gender BETWEEN 0 AND 2),
     CONSTRAINT age_between_1_and_120 CHECK (age BETWEEN 1 AND 120),
     CONSTRAINT positive_goal_weight CHECK (goal_weight > 0),
     CONSTRAINT positive_height CHECK (height > 0),
     CONSTRAINT state_between_0_and_2 CHECK (state BETWEEN 0 AND 2),
+    CONSTRAINT first_name_minimum_characters CHECK (LENGTH(first_name) >= 2),
+    CONSTRAINT last_name_minimum_characters CHECK (LENGTH(last_name) >= 2),
 
     CONSTRAINT pk_iduser
         PRIMARY KEY (id)
@@ -77,6 +80,9 @@ CREATE TABLE IF NOT EXISTS public.recipes
 	created_at timestamp with time zone DEFAULT now() NOT NULL,
 
     CONSTRAINT zero_or_positive_kcal_100g CHECK (kcal_100g >= 0),
+    CONSTRAINT recipe_title_minimum_characters_2 CHECK (LENGTH(title) >= 2),
+    CONSTRAINT recipe_ingredients_minimum_characters_3 CHECK (LENGTH(ingredients) >= 3),
+    CONSTRAINT recipe_instructions_minimum_characters_3 CHECK (LENGTH(instructions) >= 3),
 
     CONSTRAINT fk_recipes_id_user
         FOREIGN KEY (id_user)
@@ -95,6 +101,7 @@ CREATE TABLE public.food
     kcal_100g double precision NOT NULL CHECK(kcal_100g > 0),
 
     CONSTRAINT positive_kcal_100g_in_food CHECK (kcal_100g > 0),
+    CONSTRAINT food_title_minimum_characters CHECK (LENGTH(title) >= 2),
 
     CONSTRAINT pk_idfood
         PRIMARY KEY (id)
