@@ -33,11 +33,11 @@ def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
     return answer
 
 
-@router.get("/{recipe_id}", response_model=recipes.RecipeOut, status_code=status.HTTP_200_OK,
+@router.get("/{id}", response_model=recipes.RecipeOut, status_code=status.HTTP_200_OK,
             responses={404: {'description': 'Not found'}})
-def get_recipe(recipe_id: int, db: Session = Depends(get_db),
+def get_recipe(id: int, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
-    answer = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
+    answer = db.query(models.Recipe).filter(models.Recipe.id == id).first()
 
     if answer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
@@ -45,13 +45,13 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db),
     return answer
 
 
-@router.get("/{recipe_id}/image", response_model=recipes.RecipeOutPicture, status_code=status.HTTP_200_OK,
+@router.get("/{id}/image", response_model=recipes.RecipeOutPicture, status_code=status.HTTP_200_OK,
             responses={204: {'description': 'No content'},
                        404: {'description': 'Not found'}}
             )
-def get_recipe_image(recipe_id: int, db: Session = Depends(get_db),
+def get_recipe_image(id: int, db: Session = Depends(get_db),
                      curr_user: models.User = Depends(get_current_user)):
-    recipe = db.query(models.Recipe.recipe_picture).filter(models.Recipe.id == recipe_id).first()
+    recipe = db.query(models.Recipe.recipe_picture).filter(models.Recipe.id == id).first()
 
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")

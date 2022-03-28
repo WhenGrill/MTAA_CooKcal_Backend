@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends
 from .routers import food, foodlist, recipes, users, auth, weight_measurement
+from .metadata import tags_metadata
 
 from .database import get_db
 
 
-app = FastAPI()
+app = FastAPI(openapi_tags=tags_metadata)
 
 # Routers
 app.include_router(auth.router)

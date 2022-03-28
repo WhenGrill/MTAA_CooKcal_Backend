@@ -27,11 +27,11 @@ def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = 
     return answer
 
 
-@router.get("/{food_id}", response_model=food.FoodOut, status_code=status.HTTP_200_OK,
+@router.get("/{id}", response_model=food.FoodOut, status_code=status.HTTP_200_OK,
             responses={404: {'description': 'Not found'}})
-def get_food_by_id(food_id: int, curr_user: models.User = Depends(get_current_user),
+def get_food_by_id(id: int, curr_user: models.User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
-    answer = db.query(models.Food).filter(models.Food.id == food_id).first()
+    answer = db.query(models.Food).filter(models.Food.id == id).first()
     if answer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Food not found")
     return answer
