@@ -13,11 +13,12 @@ from ..utils import ex_formatter
 
 router = APIRouter(
     prefix="/weight_measurement",
-    tags=["Weight measurement"]
+    tags=["Weight measurement"],
+    responses={401: {'description': 'Unauthorized'}}
 )
 
 
-@router.get("/", response_model=List[WeightOut])
+@router.get("/", response_model=List[WeightOut], status_code=status.HTTP_200_OK)
 def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_db),
                            curr_user: models.User = Depends(get_current_user)):
 
@@ -27,7 +28,7 @@ def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_d
         try:
             date = str(parser.parse(date).date())
         except Exception:
-            return None
+            return []
 
         answer = db.query(models.Weightmeasure).filter((func.date(models.Weightmeasure.measure_time) >= date),
                                                        func.date(models.Weightmeasure.measure_time) <= date).all()
@@ -35,7 +36,8 @@ def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_d
     return answer
 
 
-@router.post("/", response_model=WeightOut)
+@router.post("/", response_model=WeightOut, status_code=status.HTTP_200_OK,
+             responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def add_weight_measurement(weight: WeightIn, db: Session = Depends(get_db),
                            curr_user: models.User = Depends(get_current_user)):
     time = datetime.now()

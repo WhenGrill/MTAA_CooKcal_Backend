@@ -25,7 +25,8 @@ router = APIRouter(
 ex_userNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User not found")
 
 
-@router.get("/", response_model=List[UserOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[UserOut], status_code=status.HTTP_200_OK,
+            responses={401: {'description': 'Unauthorized'}})
 def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
               db: Session = Depends(get_db)):
     if name == '':
@@ -38,7 +39,9 @@ def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_cur
     return users
 
 
-@router.get("/{id}", response_model=UserOut, status_code=status.HTTP_200_OK)
+@router.get("/{id}", response_model=UserOut, status_code=status.HTTP_200_OK,
+            responses={401: {'description': 'Unauthorized'},
+                       404: {'description': 'Not found'}})
 def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if user is None or id == 0:
@@ -47,7 +50,10 @@ def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db
     return user
 
 
-@router.get("/{id}/image", status_code=status.HTTP_200_OK)
+@router.get("/{id}/image", status_code=status.HTTP_200_OK,
+            responses={204: {'description': 'No content'},
+                       401: {'description': 'Unauthorized'},
+                       404: {'description': 'Not found'}})
 def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_current_user),
                              db: Session = Depends(get_db)):
     user = db.query(models.User.profile_picture).filter(models.User.id == id).first()
@@ -61,7 +67,9 @@ def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_curre
     return StreamingResponse(io.BytesIO(user.profile_picture), media_type=f"image/{im.format.lower()}")
 
 
-@router.post("/", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED,
+             responses={400: {'description': 'Bad request - email taken'},
+                        403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     hashed_password = utils.pwd_hash(user_data.password)
     user_data.password = hashed_password
@@ -81,7 +89,10 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     return db.query(models.User).filter(models.User.email == user_reg_data.email).first()
 
 
-@router.put("/{id}", response_model=UserUpdatedOut, status_code=status.HTTP_200_OK)
+@router.put("/{id}", response_model=UserUpdatedOut, status_code=status.HTTP_200_OK,
+            responses={304: {'description': 'Not modified'},
+                       401: {'description': 'Unauthorized'},
+                       403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(get_db),
                      curr_user: models.User = Depends(get_current_user)):
     user_query = db.query(models.User).filter(models.User.id == id)
@@ -105,7 +116,11 @@ def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(ge
     return user_query.first()
 
 
-@router.put("/{id}/image", status_code=status.HTTP_200_OK)
+@router.put("/{id}/image", status_code=status.HTTP_200_OK,
+            responses={401: {'description': 'Unauthorized'},
+                       404: {'description': 'Not found'},
+                       413: {'description': 'Request entity too large (exceeded 2.7MB)'},
+                       415: {'description': 'Unsupported media type'}})
 def update_user_profile_picture(id: int, prof_picture: UploadFile = File(...),
                                 curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user_query = db.query(models.User).filter(models.User.id == id)
@@ -125,7 +140,9 @@ def update_user_profile_picture(id: int, prof_picture: UploadFile = File(...),
                              media_type=prof_picture.content_type)
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT,
+               responses={401: {'description': 'Unauthorized'},
+                          404: {'description': 'Not found'}})
 def delete_user_account(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()

@@ -16,7 +16,8 @@ from typing import List
 
 router = APIRouter(
     prefix="/foodlist",
-    tags=["Food List"]
+    tags=["Food List"],
+    responses={401: {'description': 'Unauthorized'}}
 )
 
 
@@ -26,7 +27,7 @@ def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
     try:
         test_date = str(parser.parse(date).date())
     except Exception:
-        return None
+        return []
 
     food_list_query = db.query(models.Foodlist.id, models.Food.title, models.Food.kcal_100g, models.Foodlist.amount)\
         .join(models.Food).filter(and_(models.Foodlist.id_user == curr_user.id,
@@ -38,7 +39,9 @@ def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
     return food_list
 
 
-@router.post("/", response_model=FoodListOut, status_code=status.HTTP_200_OK)
+@router.post("/", response_model=FoodListOut, status_code=status.HTTP_200_OK,
+             responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'},
+                        404: {'description': 'Not found'}})
 def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depends(get_current_user),
                           db: Session = Depends(get_db)):
     answer = db.query(models.Food).filter(models.Food.id == new_food.id_food).first()
@@ -66,7 +69,9 @@ def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depend
     return fetched
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT,
+               responses={404: {'description': 'Not found'},
+                          401: {'description': 'Unauthorized'}})
 def delete_food_from_food_list(id: int, curr_user: models.User = Depends(get_current_user),
                                db: Session = Depends(get_db)):
     food_query = db.query(models.Foodlist).filter(models.Foodlist.id == id)

@@ -10,11 +10,12 @@ from ..schemas import food
 
 router = APIRouter(
     prefix="/food",
-    tags=["Food"]
+    tags=["Food"],
+    responses={401: {'description': 'Unauthorized'}}
 )
 
 
-@router.get("/", response_model=List[food.FoodOut])
+@router.get("/", response_model=List[food.FoodOut], status_code=status.HTTP_200_OK)
 def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
                             db: Session = Depends(get_db)):
     if title != '':
@@ -26,7 +27,8 @@ def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = 
     return answer
 
 
-@router.get("/{food_id}", response_model=food.FoodOut)
+@router.get("/{food_id}", response_model=food.FoodOut, status_code=status.HTTP_200_OK,
+            responses={404: {'description': 'Not found'}})
 def get_food_by_id(food_id: int, curr_user: models.User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
     answer = db.query(models.Food).filter(models.Food.id == food_id).first()

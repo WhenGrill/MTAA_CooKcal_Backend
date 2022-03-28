@@ -15,11 +15,12 @@ from PIL import Image
 
 router = APIRouter(
     prefix="/recipes",
-    tags=["Recipes"]
+    tags=["Recipes"],
+    responses={401: {'description': 'Unauthorized'}}
 )
 
 
-@router.get("/", response_model=List[recipes.RecipeOut])
+@router.get("/", response_model=List[recipes.RecipeOut], status_code=status.HTTP_200_OK)
 def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
                 curr_user: models.User = Depends(get_current_user)):
 
@@ -32,7 +33,8 @@ def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
     return answer
 
 
-@router.get("/{recipe_id}", response_model=recipes.RecipeOut)
+@router.get("/{recipe_id}", response_model=recipes.RecipeOut, status_code=status.HTTP_200_OK,
+            responses={404: {'description': 'Not found'}})
 def get_recipe(recipe_id: int, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
     answer = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
@@ -43,7 +45,10 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db),
     return answer
 
 
-@router.get("/{recipe_id}/image", response_model=recipes.RecipeOutPicture)
+@router.get("/{recipe_id}/image", response_model=recipes.RecipeOutPicture, status_code=status.HTTP_200_OK,
+            responses={204: {'description': 'No content'},
+                       404: {'description': 'Not found'}}
+            )
 def get_recipe_image(recipe_id: int, db: Session = Depends(get_db),
                      curr_user: models.User = Depends(get_current_user)):
     recipe = db.query(models.Recipe.recipe_picture).filter(models.Recipe.id == recipe_id).first()
@@ -59,7 +64,8 @@ def get_recipe_image(recipe_id: int, db: Session = Depends(get_db),
         return StreamingResponse(io.BytesIO(recipe.recipe_picture), media_type=f"image/{im.format.lower()}")
 
 
-@router.post("/", response_model=recipes.RecipePostOut)
+@router.post("/", response_model=recipes.RecipePostOut, status_code=status.HTTP_200_OK,
+             responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def add_recipe(recipe_data: recipes.RecipeIn, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
     time = datetime.now()
@@ -81,7 +87,11 @@ def add_recipe(recipe_data: recipes.RecipeIn, db: Session = Depends(get_db),
     return fetched
 
 
-@router.put("/{id}", response_model=recipes.RecipeOut)
+@router.put("/{id}", response_model=recipes.RecipeOut, status_code=status.HTTP_200_OK,
+            responses={304: {'description': 'Not modified - Nothing to update'},
+                       401: {'description': 'Unauthorized'},
+                       403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'},
+                       404: {'description': 'Not found'}})
 def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = Depends(get_db),
                   curr_user: models.User = Depends(get_current_user)):
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
@@ -94,7 +104,6 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
     elif all(value is None for value in updated_recipe.dict().values()):
         raise HTTPException(status_code=status.HTTP_304_NOT_MODIFIED, detail="Nothing to update")
 
-
     try:
         recipe_query.update(remove_none_from_dict(updated_recipe.dict()), synchronize_session=False)
         db.commit()
@@ -106,7 +115,10 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
     return recipe_query.first()
 
 
-@router.put("/{id}/image")
+@router.put("/{id}/image", status_code=status.HTTP_200_OK,
+            responses={404: {'description': 'Not found'},
+                       413: {'description': 'Request entity too large (exceeded 2.7MB)'},
+                       415: {'description': 'Unsupported media type'}})
 def update_recipe_picture(id: int, updated_profile_picture: UploadFile = File(...),
                           curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
@@ -125,7 +137,8 @@ def update_recipe_picture(id: int, updated_profile_picture: UploadFile = File(..
     return StreamingResponse(io.BytesIO(recipe_query.first().recipe_picture), media_type="image/png")
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT,
+               responses={404: {'description': 'Not found'}})
 def delete_recipe(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
     recipe = recipe_query.first()
