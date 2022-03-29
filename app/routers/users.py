@@ -42,7 +42,7 @@ def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_cur
 
 
 # GET endpoint for getting used based on id
-@router.get("/{id}", response_model=UserOut, status_code=status.HTTP_200_OK,
+@router.get("/{id}", response_model=UserUpdatedOut, status_code=status.HTTP_200_OK,
             responses={401: {'description': 'Unauthorized'},
                        404: {'description': 'Not found'}})
 def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -89,7 +89,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     except IntegrityError as e:     # if constrains were violated
         if isinstance(e.orig, psycopg2.errors.lookup("23505")):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail=f"E-mail '{user_reg_data.email}' already taken")
+                                detail=f"E-mail '{user_reg_data.email}' already registered.")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ex_formatter(e))
     except Exception as e:  # if other exception occured (data error)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e.__cause__))

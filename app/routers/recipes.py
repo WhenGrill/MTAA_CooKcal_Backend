@@ -68,7 +68,7 @@ def get_recipe_image(id: int, db: Session = Depends(get_db),
 
 
 # POST endpoint for adding a new recipe
-@router.post("/", response_model=recipes.RecipePostOut, status_code=status.HTTP_200_OK,
+@router.post("/", response_model=recipes.RecipePostOut, status_code=status.HTTP_201_CREATED,
              responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def add_recipe(recipe_data: recipes.RecipeIn, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):

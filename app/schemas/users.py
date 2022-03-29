@@ -26,16 +26,6 @@ class UserUpdate(BaseModel):
     is_nutr_adviser: Optional[bool]
 
 
-# Response for user registration
-class UserCreateResponse(BaseModel):
-    id: int
-    email: EmailStr
-    created_at: datetime.datetime
-
-    class Config:
-        orm_mode = True
-
-
 # Basic user endpoint response schema
 class UserOut(BaseModel):
     id: int
@@ -50,8 +40,17 @@ class UserOut(BaseModel):
         orm_mode = True
 
 
+# Response for user registration
+class UserCreateResponse(UserOut):
+    created_at: datetime.datetime
+
+    class Config:
+        orm_mode = True
+
+
 # User update response
 class UserUpdatedOut(UserOut):
+    email: EmailStr
     goal_weight: float
     height: float
 

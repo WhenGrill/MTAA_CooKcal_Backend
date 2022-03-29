@@ -41,7 +41,8 @@ def verify_image(file: bytes) -> bytes:  # Verify if image is suitable to upload
 
     im_size = sys.getsizeof(file)
     if im_size > MAX_FILE_SIZE:     # if file is too large
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                            detail=f"Image too large. Maximum upload size is {MAX_FILE_SIZE} bytes")
 
     if im.size[0] > MAX_IMAGE_DIM[0] or im.size[1] > MAX_IMAGE_DIM[1]:  # downscaling images
         im.thumbnail(MAX_IMAGE_DIM, Image.ANTIALIAS)
