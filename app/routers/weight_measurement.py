@@ -23,6 +23,19 @@ router = APIRouter(
 @router.get("/", response_model=List[WeightOut], status_code=status.HTTP_200_OK)
 def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_db),
                            curr_user: models.User = Depends(get_current_user)):
+
+    """
+    **GET endpoint for getting weight measurement based on date**
+
+    Query patameter:
+    - Optional **date**: date of measuremnts, if empty fetches every weight measurement of current user
+
+    Response body:
+    - **weight**: inserted weight
+    - **measure_time**: time of weight measurement
+
+    """
+
     if date == '':  # if no date was provided return every measuremnt of current user
         answer = db.query(models.Weightmeasure).filter(models.Weightmeasure.id_user == curr_user.id).all()
     else:
@@ -38,11 +51,22 @@ def get_weight_measurement(date: Optional[str] = '', db: Session = Depends(get_d
     return answer
 
 
-# POST method for adding new weight measurement
+# POST endpoint for adding new weight measurement
 @router.post("/", response_model=WeightOut, status_code=status.HTTP_200_OK,
              responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def add_weight_measurement(weight: WeightIn, db: Session = Depends(get_db),
                            curr_user: models.User = Depends(get_current_user)):
+    """
+        **POST endpoint for adding new weight measurement**
+
+        Request body:
+        - **weight**, weight measurement to be added
+
+        Response body:
+        - **weight**: inserted weight
+        - **measure_time**: time of weight measurement
+
+        """
 
     # get curent datetime and create new weigh measurement
     time = datetime.now()

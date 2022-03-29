@@ -25,6 +25,31 @@ router = APIRouter(
 @router.get("/", response_model=List[recipes.RecipeOut], status_code=status.HTTP_200_OK)
 def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
                 curr_user: models.User = Depends(get_current_user)):
+    """
+    **GET endpoint for getting recipes based on title**
+
+    Query parameter:
+    - Optional **title**: title of recipe, if empty returns every recipe
+
+    Response body:
+    - **id**: recipe id
+    - **title**: recipe title
+    - **ingredients**: ingredients of recipe
+    - **instructions**: instructions of recipe
+    - **kcal_100g**: kcal of recipe
+    - **creator**: creator of current recipe
+
+    Creator body:
+    - **id**: id of recipes owner
+    - **first_name**: Name of creator (user)
+    - **last_name**: Lastname of creator (user)
+    - **gender**: creator's gender
+    - **age**: creator's gender
+    - **state**: creator's gender
+    - **is_nutr_adviser**: boolean if creator is nutritional adviser
+
+    """
+
     if title != '':  # if title is empty string, get every recipe
         title = title.lower()
         answer = db.query(models.Recipe).filter(func.lower(models.Recipe.title).like(f"%{title}%")).all()
@@ -39,6 +64,32 @@ def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
             responses={404: {'description': 'Not found'}})
 def get_recipe(id: int, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
+
+    """
+    **GET endpoint for getting a recipe based on its id**
+
+    Request body:
+    - **id**: id of recipe
+
+    Response body:
+    - **id**: recipe id
+    - **title**: recipe title
+    - **ingredients**: ingredients of recipe
+    - **instructions**: instructions of recipe
+    - **kcal_100g**: kcal of recipe
+    - **creator**: creator of current recipe
+
+    Creator body:
+    - **id**: id of recipes owner
+    - **first_name**: Name of creator (user)
+    - **last_name**: Lastname of creator (user)
+    - **gender**: creator's gender
+    - **age**: creator's gender
+    - **state**: creator's gender
+    - **is_nutr_adviser**: boolean if creator is nutritional adviser
+
+    """
+
     answer = db.query(models.Recipe).filter(models.Recipe.id == id).first()
 
     if answer is None:  # if no recipe was fetched raise exception
@@ -48,12 +99,24 @@ def get_recipe(id: int, db: Session = Depends(get_db),
 
 
 # GET endpoint for getting a recipe's image
-@router.get("/{id}/image", response_model=recipes.RecipeOutPicture, status_code=status.HTTP_200_OK,
+@router.get("/{id}/image", status_code=status.HTTP_200_OK,
             responses={204: {'description': 'No content'},
                        404: {'description': 'Not found'}}
             )
 def get_recipe_image(id: int, db: Session = Depends(get_db),
                      curr_user: models.User = Depends(get_current_user)):
+
+    """
+    **GET endpoint for getting a recipe's image**
+
+    Query parameter:
+    - **id**: id of recipe
+
+    Response body:
+    - **Recipe picture**
+
+    """
+
     recipe = db.query(models.Recipe.recipe_picture).filter(models.Recipe.id == id).first()
 
     if recipe is None:  # if no recipe was fetched raise exception
@@ -72,6 +135,24 @@ def get_recipe_image(id: int, db: Session = Depends(get_db),
              responses={403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def add_recipe(recipe_data: recipes.RecipeIn, db: Session = Depends(get_db),
                curr_user: models.User = Depends(get_current_user)):
+
+    """
+    **POST endpoint for adding a new recipe**
+
+    Request body:
+    - **title**: title of recipe of recipe
+    - **ingredients**: ingredients to recipe
+    - **instructions**: instructions to recipe
+    - **kcal_100g**: kcal of food
+
+    Response body:
+    - **id**: recipe id
+    - **id_user**: user's id
+    - **title**: title of recipe of recipe
+    - **created_at**: time of recipe creation
+
+    """
+
     time = datetime.now()
     new_recipe = models.Recipe(id_user=curr_user.id, created_at=time, **recipe_data.dict())  # create a new recipe
 
@@ -100,6 +181,35 @@ def add_recipe(recipe_data: recipes.RecipeIn, db: Session = Depends(get_db),
                        404: {'description': 'Not found'}})
 def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = Depends(get_db),
                   curr_user: models.User = Depends(get_current_user)):
+
+    """
+    **PUT endpoint for recipe update**
+
+    Request body:
+    - Optional **title**: title of recipe of recipe
+    - Optional **ingredients**: ingredients to recipe
+    - Optional **instructions**: instructions to recipe
+    - Optional **kcal_100g**: kcal of food
+
+    Response body:
+    - **id**: recipe id
+    - **title**: recipe title
+    - **ingredients**: ingredients of recipe
+    - **instructions**: instructions of recipe
+    - **kcal_100g**: kcal of recipe
+    - **creator**: creator of current recipe
+
+    Creator body:
+    - **id**: id of recipes owner
+    - **first_name**: Name of creator (user)
+    - **last_name**: Lastname of creator (user)
+    - **gender**: creator's gender
+    - **age**: creator's gender
+    - **state**: creator's gender
+    - **is_nutr_adviser**: boolean if creator is nutritional adviser
+
+    """
+
     # fetch the recipe
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
     recipe = recipe_query.first()
@@ -128,8 +238,22 @@ def update_recipe(id: int, updated_recipe: recipes.RecipeUpdate, db: Session = D
             responses={404: {'description': 'Not found'},
                        413: {'description': 'Request entity too large (exceeded 2.7MB)'},
                        415: {'description': 'Unsupported media type'}})
-def update_recipe_picture(id: int, updated_profile_picture: UploadFile = File(...),
+def update_recipe_picture(id: int, recipe_picture: UploadFile = File(...),
                           curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    """
+    **PUT endpoint for updating recipe image**
+
+    Query parameter:
+    - **id**: id of recipe
+
+    Request body:
+    - **Recipe picture** in form data
+
+    Response body:
+    - **Recipe picture**
+
+    """
 
     # fetch the recipe
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
@@ -140,7 +264,7 @@ def update_recipe_picture(id: int, updated_profile_picture: UploadFile = File(..
     elif recipe.id_user != curr_user.id:    # if the fecthed recipe belongs to another user raise an exception
         raise ex_notAuthToPerformAction
 
-    verified_image = verify_image(updated_profile_picture.file.read())  # verify that the file is an image
+    verified_image = verify_image(recipe_picture.file.read())  # verify that the file is an image
 
     # update database
     recipe_query.update({"recipe_picture": verified_image}, synchronize_session=False)
@@ -153,6 +277,15 @@ def update_recipe_picture(id: int, updated_profile_picture: UploadFile = File(..
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT,
                responses={404: {'description': 'Not found'}})
 def delete_recipe(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    """
+    DELETE endpoint for recipe
+
+    Query parameter:
+    - **id**: id of recipe
+
+    """
+
     # fetch the recipe
     recipe_query = db.query(models.Recipe).filter(models.Recipe.id == id)
     recipe = recipe_query.first()

@@ -30,6 +30,22 @@ ex_userNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"
             responses={401: {'description': 'Unauthorized'}})
 def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
               db: Session = Depends(get_db)):
+    """
+    **GET endpoint for getting user based on name**
+
+    Query parameter:
+    - Optional **name**: name of user, if not present, returns every user
+
+    Response body:
+    - **id**: id of user
+    - **first_name**: first name of user
+    - **last_name**: last name of user
+    - **gender**: gender of user
+    - **age**: age of user
+    - **state**: state of user
+    - **is_nutr_adviser**: boolean if he is nutritional adviser
+    """
+
     # if no name was provided return all users
     if name == '':
         users = db.query(models.User).filter(models.User.id != 0).all()
@@ -47,6 +63,27 @@ def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_cur
                        404: {'description': 'Not found'}})
 def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     # fetch user
+
+    """
+    **GET endpoint for getting used based on id**
+
+    Query parameter:
+    - **id**, id of user to fetch
+
+    Response body:
+    - **id**: id of user
+    - **first_name**: first name of user
+    - **last_name**: last name of user
+    - **gender**: gender of user
+    - **age**: age of user
+    - **state**: state of user
+    - **is_nutr_adviser**: boolean if he is nutritional adviser
+    - **email**: email of user
+    - **goal_weight**: goal weight of user
+    - **height**: height of user
+
+    """
+
     user = db.query(models.User).filter(models.User.id == id).first()
 
     if user is None or id == 0:     # if user does not exists or it is anonymous user
@@ -62,6 +99,17 @@ def get_one_user(id: int, curr_user: models.User = Depends(get_current_user), db
                        404: {'description': 'Not found'}})
 def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_current_user),
                              db: Session = Depends(get_db)):
+    """
+    **GET endpoint for getting users's profile picture**
+
+    Query parameter:
+    - **id**: id of user
+
+    Response body:
+    - **User's profile picture**
+
+    """
+
     user = db.query(models.User.profile_picture).filter(models.User.id == id).first()
 
     if user is None or id == 0:     # if user does not exist
@@ -79,6 +127,34 @@ def get_user_profile_picture(id: int, curr_user: models.User = Depends(get_curre
                         403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     # hash the user's password
+
+    """
+    **POST endpoint for registering a new user**
+
+    Request body:
+    - **email**: user's email
+    - **password**: user's password
+    - **first_name**: user's name
+    - **last_name**: user's lastname
+    - **gender**: user's gender
+    - **age**: user's age
+    - **goal_weight**: user's weight
+    - **height**: user's height
+    - **state**: user's state
+    - **is_nutr_adviser**: boolean if user is_nutr_adviser
+
+    Response body:
+    - **id**: id of user
+    - **first_name**: first name of user
+    - **last_name**: last name of user
+    - **gender**: gender of user
+    - **age**: age of user
+    - **state**: state of user
+    - **is_nutr_adviser**: boolean if he is nutritional adviser
+    - **created_at**: time of user creation
+
+    """
+
     hashed_password = utils.pwd_hash(user_data.password)
     user_data.password = hashed_password
 
@@ -104,6 +180,29 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
                        403: {'description': 'Forbidden - Integrity or Data error (violated DB constraints)'}})
 def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(get_db),
                      curr_user: models.User = Depends(get_current_user)):
+    """
+    **PUT endpoint for updating users information**
+
+    Request body:
+    - Optional **goal_weight**: user's weight
+    - Optional **height**: user's height
+    - Optional **state**: user's state
+    - Optional **is_nutr_adviser**: boolean if user is_nutr_adviser
+
+    Response body:
+    - **id**: id of user
+    - **first_name**: first name of user
+    - **last_name**: last name of user
+    - **gender**: gender of user
+    - **age**: age of user
+    - **state**: state of user
+    - **is_nutr_adviser**: boolean if he is nutritional adviser
+    - **email**: user's email
+    - **goal_weight**: user's weight
+    - **height**: user's height
+
+    """
+
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 
@@ -133,6 +232,20 @@ def update_user_data(id: int, updated_user: UserUpdate, db: Session = Depends(ge
                        415: {'description': 'Unsupported media type'}})
 def update_user_profile_picture(id: int, prof_picture: UploadFile = File(...),
                                 curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    **PUT endpoint for updating user's profile picture**
+
+    Query parameter:
+    - **id**: id of user
+
+    Request body:
+    - **User profile picture**
+
+    Response body:
+    - **User profile picture**
+
+    """
+
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 
@@ -155,6 +268,15 @@ def update_user_profile_picture(id: int, prof_picture: UploadFile = File(...),
                responses={401: {'description': 'Unauthorized'},
                           404: {'description': 'Not found'}})
 def delete_user_account(id: int, curr_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    """
+    **DELETE endpoint for user**
+
+    Query parameter:
+    - **id**: id of user
+
+    """
+
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 

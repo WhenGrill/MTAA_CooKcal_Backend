@@ -25,6 +25,19 @@ router = APIRouter(
 @router.get("/", response_model=List[FoodListOut], status_code=status.HTTP_200_OK)
 def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
                   db: Session = Depends(get_db)):
+    """
+    **GET endpoint for getting food list based on date**
+
+    Query parameter:
+    - Optional **date**: date of addition of food to foodlist, if empty fetches every food of current user
+
+    Response body:
+    - **id**: id of food in foodlist
+    - **title**: title of added food
+    - **kcal_100g**: amount of kcal for 100g
+    - **amount**: amount of added food
+
+    """
 
     # test if input is date
     try:
@@ -49,6 +62,20 @@ def get_food_list(date: str, curr_user: models.User = Depends(get_current_user),
                         404: {'description': 'Not found'}})
 def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depends(get_current_user),
                           db: Session = Depends(get_db)):
+    """
+    **POST endpoint for adding new food to foodlist**
+
+    Request body:
+    - **id_food**: id of chosen food
+    - **amount**: amount of chosen food
+
+    Response body:
+    - **id**: id of food in foodlist
+    - **title**: title of added food
+    - **kcal_100g**: amount of kcal for 100g
+    - **amount**: amount of added food
+
+    """
 
     # Fetch food from foods table in database
     answer = db.query(models.Food).filter(models.Food.id == new_food.id_food).first()
@@ -81,6 +108,13 @@ def add_food_to_food_list(new_food: FoodListAdd, curr_user: models.User = Depend
                           401: {'description': 'Unauthorized'}})
 def delete_food_from_food_list(id: int, curr_user: models.User = Depends(get_current_user),
                                db: Session = Depends(get_db)):
+    """
+    DELETE endpoint for deleting food from food list
+
+    Query parameter:
+    - **id**: id of food in foodlist
+
+    """
 
     # fetch food from foodlist
     food_query = db.query(models.Foodlist).filter(models.Foodlist.id == id)

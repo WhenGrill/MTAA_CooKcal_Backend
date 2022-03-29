@@ -37,14 +37,6 @@ class RecipePostOut(BaseModel):
         orm_mode = True
 
 
-# Recipe picture recipe
-class RecipeOutPicture(BaseModel):
-    recipe_picture: bytes = None
-
-    class Config:
-        orm_mode = True
-
-
 # Recipe update in
 class RecipeUpdate(BaseModel):
     title: Optional[str]
@@ -52,7 +44,3 @@ class RecipeUpdate(BaseModel):
     instructions: Optional[str]
     kcal_100g: Optional[float]
 
-
-# Recipe picture schema
-class RecipeInPicture(BaseModel):
-    recipe_picture: bytes

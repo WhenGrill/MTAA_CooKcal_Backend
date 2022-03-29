@@ -20,6 +20,20 @@ router = APIRouter(
 @router.get("/", response_model=List[food.FoodOut], status_code=status.HTTP_200_OK)
 def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = Depends(get_current_user),
                             db: Session = Depends(get_db)):
+
+    """
+    **GET endpoint for food based on title**
+
+    Query parameter:
+    - Optional **title**: title of food (if empty returns every food)
+
+    Response body:
+    - **id**: id of fetched food
+    - **title**: title of fetched food
+    - **kcal_100g**: kcal of fetched food
+
+    """
+
     if title != '':  # if no title was provided fetch all the food
         title = title.lower()
         answer = db.query(models.Food).filter(func.lower(models.Food.title).like(f"%{title}%")).all()
@@ -34,6 +48,19 @@ def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = 
             responses={404: {'description': 'Not found'}})
 def get_food_by_id(id: int, curr_user: models.User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
+    """
+    **GET endpoint for getting food based on id**
+
+    Query parameter:
+    - id: id of food
+
+    Response body:
+    - **id**: id of fetched food
+    - **title**: title of fetched food
+    - **kcal_100g**: kcal of fetched food
+
+    """
+
     # fetch the food
     answer = db.query(models.Food).filter(models.Food.id == id).first()
 
