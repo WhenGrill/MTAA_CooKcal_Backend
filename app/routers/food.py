@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 
-from ..database import get_db
+from ..database import get_db, ws_get_db
 from .. import models
 from ..oauth2 import get_current_user
 from ..schemas import food
@@ -42,6 +42,37 @@ def get_all_food_or_by_name(title: Optional[str] = '', curr_user: models.User = 
 
     return answer
 
+
+@router.websocket("/ws")
+async def ws_get_all_food_or_by_name(websocket: WebSocket):
+    await websocket.accept()
+    token: str = websocket.headers['authorization']
+    db = ws_get_db()
+    curr_user = get_current_user(token=token, db=db, is_wb=True)
+
+    if not isinstance(curr_user, models.User):
+        return curr_user
+
+    try:
+        while True:
+            title: str = await websocket.receive_text()
+
+            if title != '':  # if no title was provided fetch all the food
+                title = title.lower()
+                answer = db.query(models.Food).filter(func.lower(models.Food.title).like(f"%{title}%")).all()
+            else:  # else fetch based on title
+                answer = db.query(models.Food).all()
+
+            l_food = []
+
+            for x in answer:
+                new = food.FoodOut(**x.__dict__)
+                l_food.append(new.dict())
+
+            await websocket.send_json({'status_code': 200, 'detail': l_food})
+
+    except WebSocketDisconnect:
+        pass
 
 # GET endpoint for getting food based on id
 @router.get("/{id}", response_model=food.FoodOut, status_code=status.HTTP_200_OK,
