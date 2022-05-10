@@ -18,3 +18,11 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ws_get_db():
+    db = SessionLocal()
+    try:
+        return db
+    except Exception:
+        return None

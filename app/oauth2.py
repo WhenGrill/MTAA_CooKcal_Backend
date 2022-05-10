@@ -47,9 +47,30 @@ def verify_token(token: str, credentials_exception: HTTPException):
     return token_data
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)) -> models.User:
-    token = verify_token(token, ex_validationErr)
-    user = db.query(models.User).filter(models.User.id == token.id).first()
-    if user is None:
-        raise ex_notAuthToPerformAction
+def wb_verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])  # Decode token
+        user_id: str = payload.get("user_id")
+        if not user_id:
+            return {'status_code': 401, 'detail': "Could not validate credentials"}
+        token_data = TokenData(id=user_id)
+    except JWTError:
+        return {'status_code': 401, 'detail': "Could not validate credentials"}
+
+    return token_data
+
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db),
+                     is_wb: bool = False) -> models.User:
+    if is_wb:
+        token = wb_verify_token(token)
+        user = db.query(models.User).filter(models.User.id == token.id).first()
+        if user is None:
+            raise {'status_code': 401, 'detail': "Not authorized to perform requested action"}
+    else:
+        token = verify_token(token, ex_validationErr)
+        user = db.query(models.User).filter(models.User.id == token.id).first()
+        if user is None:
+            raise ex_notAuthToPerformAction
+
     return user
