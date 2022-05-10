@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
-from ..database import get_db
+from ..database import get_db, ws_get_db
 from .. import models
 from sqlalchemy import func, and_
 from sqlalchemy.exc import IntegrityError
@@ -57,6 +57,41 @@ def get_recipes(title: Optional[str] = '', db: Session = Depends(get_db),
         answer = db.query(models.Recipe).all()
 
     return answer
+
+
+@router.websocket("/ws")
+async def ws_get_recipes(websocket: WebSocket):
+    await websocket.accept()
+    token: str = websocket.headers['authorization']
+    db = ws_get_db()
+    curr_user = get_current_user(token=token, db=db, is_wb=True)
+
+    if not isinstance(curr_user, models.User):
+        return curr_user
+
+    try:
+        while True:
+            title: str = await websocket.receive_text()
+
+            if title != '':  # if title is empty string, get every recipe
+                title = title.lower()
+                answer = db.query(models.Recipe).filter(func.lower(models.Recipe.title).like(f"%{title}%")).all()
+            else:  # else get recipe based on title
+                answer = db.query(models.Recipe).all()
+
+            l_recipes = []
+            for x in answer:
+                user = db.query(models.User).filter(models.User.id == x.id_user).first()
+                merge_dict = x.__dict__
+                merge_dict['creator'] = user.__dict__
+                new = recipes.RecipeOut(**merge_dict)
+                l_recipes.append(new.dict())
+
+
+            await websocket.send_json({'status_code': 200, 'detail': l_recipes})
+
+    except WebSocketDisconnect:
+        pass
 
 
 # GET endpoint for getting a recipe based on its id

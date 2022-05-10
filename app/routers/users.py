@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status, WebSocket, WebSocketDisconnect
 from starlette.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from PIL import Image
 
-from ..database import get_db
+from ..database import get_db, ws_get_db
 from .. import models, utils
 from ..oauth2 import get_current_user, ex_notAuthToPerformAction
 from ..schemas.users import UserOut, UserCreate, UserUpdate, UserUpdatedOut, UserCreateResponse
@@ -55,6 +55,38 @@ def get_users(name: Optional[str] = '', curr_user: models.User = Depends(get_cur
                                              models.User.id != 0).all()
 
     return users
+
+@router.websocket("/ws")
+async def ws_get_users(websocket: WebSocket):
+    await websocket.accept()
+    token: str = websocket.headers['authorization']
+    db = ws_get_db()
+    curr_user = get_current_user(token=token, db=db, is_wb=True)
+
+    if not isinstance(curr_user, models.User):
+       return curr_user
+
+    try:
+        while True:
+            name: str = await websocket.receive_text()
+
+            if name == '':
+                users = db.query(models.User).filter(models.User.id != 0).all()
+            else:  # if name was provided fetch user by the name
+                users = db.query(models.User).filter(func.lower(func.concat(
+                    models.User.first_name, ' ', models.User.last_name)).like(f"%{name.lower()}%"),
+                                                     models.User.id != 0).all()
+            l_users = []
+
+            for x in users:
+                new = UserOut(**x.__dict__)
+                l_users.append(new.dict())
+
+            await websocket.send_json({'status_code': 200, 'detail': l_users})
+            db.close()
+
+    except WebSocketDisconnect:
+        pass
 
 
 # GET endpoint for getting used based on id
