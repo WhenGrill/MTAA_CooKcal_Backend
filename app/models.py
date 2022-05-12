@@ -58,7 +58,7 @@ class Foodlist(Base):
     __tablename__ = "foodlist"
 
     # Columns
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     id_user = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     id_food = Column(Integer, ForeignKey("food.id", ondelete="CASCADE"), primary_key=True)
     amount = Column(Float, nullable=False)
