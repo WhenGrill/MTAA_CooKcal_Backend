@@ -49,12 +49,14 @@ async def ws_get_all_food_or_by_name(websocket: WebSocket):
     token: str = websocket.headers['authorization']
     db = ws_get_db()
     curr_user = get_current_user(token=token, db=db, is_wb=True)
+    db.close()
 
     if not isinstance(curr_user, models.User):
         return curr_user
 
     try:
         while True:
+            db = ws_get_db()
             title: str = await websocket.receive_text()
 
             if title != '':  # if no title was provided fetch all the food
@@ -69,6 +71,7 @@ async def ws_get_all_food_or_by_name(websocket: WebSocket):
                 new = food.FoodOut(**x.__dict__)
                 l_food.append(new.dict())
 
+            db.close()
             await websocket.send_json({'status_code': 200, 'detail': l_food})
 
     except WebSocketDisconnect:

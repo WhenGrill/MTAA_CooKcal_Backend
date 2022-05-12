@@ -62,12 +62,14 @@ async def ws_get_users(websocket: WebSocket):
     token: str = websocket.headers['authorization']
     db = ws_get_db()
     curr_user = get_current_user(token=token, db=db, is_wb=True)
+    db.close()
 
     if not isinstance(curr_user, models.User):
        return curr_user
 
     try:
         while True:
+            db = ws_get_db()
             name: str = await websocket.receive_text()
 
             if name == '':
